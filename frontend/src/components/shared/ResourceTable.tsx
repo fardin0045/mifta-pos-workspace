@@ -1,0 +1,8 @@
+import { useMemo, useState } from 'react'
+import { Input } from '@/components/ui/input'
+export interface Column<Row> { key:keyof Row; label:string; render?: (value:Row[keyof Row],row:Row)=>React.ReactNode }
+export function ResourceTable<Row extends object>({data,columns,title,subtitle}:{data:Row[];columns:Column<Row>[];title:string;subtitle?:string}){
+ const [q,setQ]=useState('')
+ const filtered=useMemo(()=>data.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q.toLowerCase()))),[data,q])
+ return <section className="overflow-hidden rounded-lg border bg-white shadow-sm"><div className="flex flex-wrap items-center justify-between gap-4 border-b px-5 py-5"><div><h2 className="text-xl font-bold">{title}</h2>{subtitle&&<p className="mt-1 text-sm text-slate-500">{subtitle}</p>}</div><Input aria-label={'Search '+title} value={q} onChange={e=>setQ(e.target.value)} placeholder="Search records..." className="max-w-xs"/></div><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-[#edf3f9] text-xs uppercase text-slate-600"><tr>{columns.map(c=><th key={`${String(c.key)}-${c.label}`} className="px-5 py-4">{c.label}</th>)}</tr></thead><tbody>{filtered.map((row,i)=><tr key={"id" in row && typeof row.id === "string" ? row.id : i} className="border-t hover:bg-slate-50">{columns.map(c=><td key={`${String(c.key)}-${c.label}`} className="px-5 py-4">{c.render?c.render(row[c.key],row):String(row[c.key]??'—')}</td>)}</tr>)}</tbody></table>{filtered.length===0&&<p className="px-5 py-6 text-sm text-slate-500">No matching records.</p>}</div><div className="border-t px-5 py-3 text-xs text-slate-500">{filtered.length} records · Example UI, connect API before production</div></section>
+}
